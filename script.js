@@ -42,7 +42,40 @@ const gameBoard = (() => {
 		})
 	})
 
-	const updateScore = function (player) {
+	const populateCell = (cell, player) => {
+		cell.classList.add(player.xOrO)
+		player.addPosition(cell.dataset.cell)
+		checkForWinner(player)
+		o.isTurn = !o.isTurn
+		x.isTurn = !x.isTurn
+	}
+
+	const checkForWinner = player => {
+		//checks for draw
+		let count = 0
+		gameBoardCells.forEach(cell => {
+			if (cell.classList.contains('x') || cell.classList.contains('o')) {
+				count++
+			}
+		})
+		if (count >= 9) {
+			gameBoardIsActive = false
+			displayWinner('draw')
+		}
+		//checks for winning combination
+		winningCombinations.forEach(combination => {
+			if (
+				combination.every(val => player.positions.includes(val)) &&
+				count !== 9
+			) {
+				gameBoardIsActive = false
+				displayWinner(player)
+				updateScore(player)
+			}
+		})
+	}
+
+	const updateScore = player => {
 		player.score++
 		if (player.xOrO === 'x') {
 			console.log(player.xOrO)
@@ -54,36 +87,7 @@ const gameBoard = (() => {
 		}
 	}
 
-	const populateCell = function (cell, player) {
-		cell.classList.add(player.xOrO)
-		player.addPosition(cell.dataset.cell)
-		checkForWinner(player)
-		o.isTurn = !o.isTurn
-		x.isTurn = !x.isTurn
-	}
-
-	const checkForWinner = function (player) {
-		console.log(player.positions)
-		winningCombinations.forEach(combination => {
-			if (combination.every(val => player.positions.includes(val))) {
-				gameBoardIsActive = false
-				displayWinner(player)
-				updateScore(player)
-			}
-		})
-		let count = 0
-		gameBoardCells.forEach(cell => {
-			if (cell.classList.contains('x') || cell.classList.contains('o')) {
-				count++
-			}
-		})
-		if (count >= 9) {
-			gameBoardIsActive = false
-			displayWinner('draw')
-		}
-	}
-
-	const displayWinner = function (winner) {
+	const displayWinner = winner => {
 		let textContent = ''
 		let textColor = ''
 		if (winner === 'draw') {
@@ -101,23 +105,7 @@ const gameBoard = (() => {
 		modal.showModal()
 	}
 
-	restartButton.addEventListener('click', clearBoard)
-
-	modal.addEventListener('click', dialogClickHandler)
-
-	function dialogClickHandler(e) {
-		if (e.target.tagName !== 'DIALOG') return
-		const rect = e.target.getBoundingClientRect()
-		const clickedInDialog =
-			rect.top <= e.clientY &&
-			e.clientY <= rect.top + rect.height &&
-			rect.left <= e.clientX &&
-			e.clientX <= rect.left + rect.width
-		if (clickedInDialog === false) e.target.close()
-		clearBoard()
-	}
-
-	function clearBoard() {
+	const clearBoard = () => {
 		gameBoardIsActive = true
 		x.isTurn = true
 		o.isTurn = false
@@ -128,4 +116,18 @@ const gameBoard = (() => {
 			if (cell.classList.contains('o')) cell.classList.remove('o')
 		})
 	}
+
+	restartButton.addEventListener('click', clearBoard)
+
+	modal.addEventListener('click', function (e) {
+		if (e.target.tagName !== 'DIALOG') return
+		const rect = e.target.getBoundingClientRect()
+		const clickedInDialog =
+			rect.top <= e.clientY &&
+			e.clientY <= rect.top + rect.height &&
+			rect.left <= e.clientX &&
+			e.clientX <= rect.left + rect.width
+		if (clickedInDialog === false) e.target.close()
+		clearBoard()
+	})
 })()
